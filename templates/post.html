@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block style %}
+    <style>
+        /* Save summernote editor css which has been overwritten by blog theme */
+        .btn-group-sm>.btn, .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-radius: 3px;
+        }
+
+        .comment-header {
+            font-family: Lora,'Times New Roman',serif;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .comment-modify-link{
+            font-weight: 500;
+            float: right;
+            margin-top: -17px;
+        }
+
+        #Content{
+            display:none;
+        }
+
+        #Submit{
+            display:none;
+        }
+
+        #Cancel{
+            display:none;
+        }
+    </style>
+{% endblock %}
+
+{% block content%}
+    <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url('/static/img/post-bg.jpg')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="post-heading">
+                        <h1>{{post.title}}</h1>
+                        <h2 class="subheading">{{post.subtitle}}</h2>
+                        <span class="meta">Posted by <a href="#">{{author.name}}</a> on {{post.created.strftime("%B %d,%Y")}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Post Content -->
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" id="Post" data-pid="{{post.key().id()}}">
+                    {{post.content | safe}}
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- Comment Content -->
+    <article>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    {% if comments %}
+                    {% for comment in comments %}
+                        <hr>
+                        <h4 class="comment-header">
+                            Commented by <a href="#">{{comment.uname}}</a> on {{comment.edited.strftime("%B %d,%Y")}}
+                            {% if user and user.key().id() == comment.uid %}
+                                <!-- Use form to make a post request -->
+                                <form action="/delete_comment" method="post">
+                                    <input type="hidden" name="pid" value="{{post.key().id()}}">
+                                   <input type="hidden" name="cid" value="{{comment.key().id()}}">
+                                   <a class="comment-modify-link" href="javascript:;" onclick="parentNode.submit();">Delete</a>
+                                </form>
+                                <span class="comment-modify-link">/</span>
+                                <a class="comment-modify-link edit-link" href="#editor" data-cid="{{comment.key().id()}}">Edit</a>
+                            {% endif %}
+                        </h4>
+                        <div id="{{comment.key().id()}}">{{comment.content | safe}}</div>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if user %}
+                        <hr>
+                        <div id="editor" >
+                            editor
+                        </div>
+                        <form method="post" action="/new_comment">
+                            <input type="hidden" name="pid" value="" id="Pid">
+                            <input type="hidden" name="cid" value="" id="Cid">
+                            <div>
+                                <textarea name="content" id="Content" cols="40" rows="10" class="form-control"></textarea>
+                            </div>
+                            <div>
+                                <button type="button" id="Publish" class="btn btn-default btn-lg btn-block">Publish This Comment</button>
+                            </div>
+                            <div>
+                                <button type="button" id="Cancel" class="btn btn-default btn-lg btn-block">Cancel Edit</button>
+                            </div>
+                            <div>
+                                <input type="submit" id="Submit">
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </article>
+{% endblock %}
+
+{% block script %}
+    <!-- include summernote css/js-->
+    <link href="/static/vendor/summernote/summernote.css" rel="stylesheet">
+    <script src="/static/vendor/summernote/summernote.min.js"></script>
+
+    <!-- initialize summernote editor-->
+    <script>
+        $(document).ready(function() {
+            $('#editor').summernote({
+              height: 400,                 // set editor height
+              minHeight: 300,             // set minimum height of editor
+              maxHeight: null,             // set maximum height of editor
+            });
+            $('#editor').summernote('code', ''); // clean editor
+
+            // Set pid value for form
+            var pid = $('#Post').attr('data-pid');
+            $('#Pid').val(pid);
+
+            // Submit form
+            $('#Publish').click(function triggerSubmit(){
+                var content = $('#editor').summernote('code');
+                if (content == ""){
+                    alert("Content can not be empty!");
+                } else {
+                    $('#Content').html(content);
+                    $('#Submit').trigger('click');
+                }
+            });
+
+            // Set form for editing comment
+            $('.edit-link').click(function(){
+                var cid = $(this).attr('data-cid');
+                $('#Cid').val(cid);
+                $('#Publish').html('Confirm Edit');
+                $('#Cancel').show();
+                var content = $('#' + cid).html();
+                $('#editor').summernote('code', content);
+            });
+
+            $('#Cancel').click(function reset_form(){
+                $('#Cid').val('');
+                $('#Publish').html('Publish this Comment');
+                $('#editor').summernote('code', '');
+                $('#Cancel').hide();
+            });
+
+            // Set content and alert error message
+            {% if error %}
+                var content = $('#Content').html();
+                $('#editor').summernote('code', content);
+                alert("{{error}}");
+            {% endif %}
+        });
+    </script>
+{% endblock %}
+

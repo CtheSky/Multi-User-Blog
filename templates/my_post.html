@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block style %}
+    <style>
+        .post-modify-link{
+            font-weight: 500;
+            float: right;
+        }
+    </style>
+{% endblock %}
+
+{% block content%}
+    <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url('/static/img/home-bg.jpg')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="site-heading">
+                        <h1>Clean Blog</h1>
+                        <hr class="small">
+                        <span class="subheading">A Clean Blog Theme by Start Bootstrap</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                {% if posts %}
+                {% for post in posts %}
+                <div class="post-preview">
+                    <a href="/post/{{post.key().id()}}">
+                        <h2 class="post-title">
+                            {{post.title}}
+                            <!-- Use form to make a post request -->
+                            <form action="/delete_post/{{post.key().id()}}" method="post">
+                               <input type="hidden" name="pid">
+                               <a class="post-modify-link" href="javascript:;" onclick="parentNode.submit();">Delete</a>
+                            </form>
+                            <span class="post-modify-link">/</span>
+                            <a class="post-modify-link" href="/edit_post/{{post.key().id()}}">Edit</a>
+                        </h2>
+                        <h3 class="post-subtitle">
+                            {{post.subtitle}}
+                        </h3>
+                    </a>
+                    <p class="post-meta">Posted by <a href="#">{{user.name}}</a> on {{post.created.strftime("%B %d,%Y")}}</p>
+                </div>
+                <hr>
+                {% endfor %}
+                {% endif %}
+             </div>
+        </div>
+    </div>
+{% endblock %}
+

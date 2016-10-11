@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block style %}
+    <style>
+        .btn-group-sm>.btn, .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-radius: 3px;
+        }
+
+        #Content{
+            display:none;
+        }
+
+        #Submit{
+            display:none;
+        }
+    </style>
+{% endblock %}
+
+{% block content%}
+<!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header" style="background-image: url('/static/img/home-bg.jpg')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <div class="site-heading">
+                        <h1>Clean Blog</h1>
+                        <hr class="small">
+                        <span class="subheading">A Clean Blog Theme by Start Bootstrap</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <form method="post">
+                    <div>
+                        <label for="Title">Title</label>
+                        <input type="text" name="title" id="Title" class="form-control" value="{{title}}" disabled="disabled">
+                    </div>
+                    <div>
+                        <label for="Subtitle">Subtitle (Optional)</label>
+                        <input type="text" name="subtitle" id="Subtitle" class="form-control" value="{{subtitle}}" >
+                    </div>
+                    <div>
+                        <label for="Content">Content</label>
+                        <textarea name="content" id="Content" cols="40" rows="10" class="form-control">{{content | safe}}</textarea>
+                    </div>
+                    <div id="editor">{{content | safe}}</div>
+                    <div>
+                        <button type="button" id="Publish" class="btn btn-default btn-lg btn-block">Confirm This Update</button>
+                    </div>
+                    <div>
+                        <input type="submit" id="Submit">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block script %}
+    <!-- include summernote css/js-->
+    <link href="/static/vendor/summernote/summernote.css" rel="stylesheet">
+    <script src="/static/vendor/summernote/summernote.min.js"></script>
+
+    <!-- initialize summernote editor-->
+    <script>
+        $(document).ready(function() {
+            $('#editor').summernote({
+              height: 400,                 // set editor height
+              minHeight: 300,             // set minimum height of editor
+              maxHeight: null,             // set maximum height of editor
+            });
+
+            $('#Publish').click(function triggerSubmit(){
+                var content = $('#editor').summernote('code');
+                $('#Content').html(content);
+                $('#Submit').trigger('click');
+            });
+
+            // Alert error message
+            {% if error %}
+                alert("{{error}}");
+            {% endif %}
+        });
+    </script>
+{% endblock %}
