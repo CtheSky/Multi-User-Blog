@@ -265,6 +265,7 @@ class SignUp(Handler):
         else:
             user = User.register(name, pw)
             user.put()
+            self.login(user)
             self.redirect("/")
 
 
