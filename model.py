@@ -40,8 +40,7 @@ class Post(db.Model):
     @classmethod
     def by_uid(cls, uid):
         # Use keys_only query to avoid Eventual Consistency
-        # TODO: Tried but failed
-        return db.GqlQuery("select * from Post where uid= :uid", uid=uid)
+        return Post.get(Post.all(keys_only=True).filter("uid =", uid))
 
     @classmethod
     def by_id(cls, pid):
@@ -62,9 +61,7 @@ class Comment(db.Model):
     @classmethod
     def by_pid(cls, pid):
         # Use keys_only query to avoid Eventual Consistency
-        # TODO: Tried but failed
-        query = db.Query(model_class=Comment, keys_only=True)
-        return Comment.get([key for key in query.run()])
+        return Comment.get(Comment.all(keys_only=True).filter("pid =", pid))
 
 
 class Like(db.Model):
@@ -73,4 +70,5 @@ class Like(db.Model):
 
     @classmethod
     def by_uid_and_pid(cls, uid, pid):
-        return db.GqlQuery("select * from Like where uid= :uid and pid= :pid", uid=uid, pid=pid).get()
+        # Use keys_only query to avoid Eventual Consistency
+        return Like.get(Like.all(keys_only=True).filter("uid =", uid).filter("pid =", pid))
