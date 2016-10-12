@@ -41,7 +41,7 @@ class Post(db.Model):
     @classmethod
     def by_uid(cls, uid):
         # Use keys_only query to avoid Eventual Consistency
-        return Post.get(Post.all(keys_only=True).filter("uid =", uid))
+        return Post.get(Post.all(keys_only=True).filter("uid =", uid).order("-created"))
 
     @classmethod
     def by_id(cls, pid):
@@ -62,7 +62,7 @@ class Comment(db.Model):
     @classmethod
     def by_pid(cls, pid):
         # Use keys_only query to avoid Eventual Consistency
-        return Comment.get(Comment.all(keys_only=True).filter("pid =", pid))
+        return Comment.get(Comment.all(keys_only=True).filter("pid =", pid).order("edited"))
 
 
 class Like(db.Model):
