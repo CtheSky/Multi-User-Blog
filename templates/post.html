@@ -57,8 +57,25 @@
     <article>
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1" id="Post" data-pid="{{post.key().id()}}">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     {{post.content | safe}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <br>
+                    <div class="comment-header">
+                        <span>{{post.liked}} people like this post.</span>
+                        {% if user and user.name != author.name and not like %}
+                            <!-- Use form to make a post request -->
+                            <form action="/like_post" method="post">
+                                <input type="hidden" name="pid" value="{{post.key().id()}}">
+                                <a class="comment-modify-link" href="javascript:;" onclick="parentNode.submit();">
+                                    <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+                                </a>
+                            </form>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,6 +88,7 @@
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                     {% if comments %}
                     {% for comment in comments %}
+                        {% if comment %}
                         <hr>
                         <h4 class="comment-header">
                             Commented by <a href="#">{{comment.uname}}</a> on {{comment.edited.strftime("%B %d,%Y")}}
@@ -86,6 +104,7 @@
                             {% endif %}
                         </h4>
                         <div id="{{comment.key().id()}}">{{comment.content | safe}}</div>
+                        {% endif %}
                     {% endfor %}
                     {% endif %}
 
@@ -95,7 +114,7 @@
                             editor
                         </div>
                         <form method="post" action="/new_comment">
-                            <input type="hidden" name="pid" value="" id="Pid">
+                            <input type="hidden" name="pid" value="{{post.key().id()}}" id="Pid">
                             <input type="hidden" name="cid" value="" id="Cid">
                             <div>
                                 <textarea name="content" id="Content" cols="40" rows="10" class="form-control"></textarea>
@@ -131,10 +150,6 @@
               maxHeight: null,             // set maximum height of editor
             });
             $('#editor').summernote('code', ''); // clean editor
-
-            // Set pid value for form
-            var pid = $('#Post').attr('data-pid');
-            $('#Pid').val(pid);
 
             // Submit form
             $('#Publish').click(function triggerSubmit(){

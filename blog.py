@@ -144,8 +144,13 @@ class ViewPost(Handler):
         post = Post.by_id(pid)
         author = User.by_id(post.uid)
         comments = Comment.by_pid(pid)
+
+        like = None
+        if not self.with_no_user():
+            like = Like.by_uid_and_pid(self.user.key().id(), pid)
+
         if post:
-            self.render("post.html", post=post, author=author, comments=comments)
+            self.render("post.html", post=post, author=author, comments=comments, like=like)
         else:
             self.error(404)
 
@@ -159,6 +164,25 @@ class MyPost(Handler):
         uid = self.user.key().id()
         posts = Post.by_uid(uid)
         self.render("my_post.html", posts=posts)
+
+
+class LikePost(Handler):
+    def post(self):
+        pid = self.request.get("pid")
+        if self.with_no_user() or self.user_match_post_author(pid):
+            self.redirect("/")
+            return
+
+        pid = long(pid)
+        post = Post.by_id(pid)
+        post.liked += 1
+        post.put()
+
+        pid = long(pid)
+        like = Like(uid=self.user.key().id(), pid=pid)
+        like.put()
+
+        self.redirect("/post/%s" % pid)
 
 
 class NewComment(Handler):
@@ -268,6 +292,7 @@ app = webapp2.WSGIApplication([
     ('/new_post', NewPost),
     ('/my_post', MyPost),
     ('/post/(\d+)', ViewPost),
+    ('/like_post', LikePost),
     ('/edit_post/(\d+)', EditPost),
     ('/delete_post/(\d+)', DeletePost),
     ('/new_comment', NewComment),

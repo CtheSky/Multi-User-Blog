@@ -35,6 +35,7 @@ class Post(db.Model):
     content = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
     edited = db.DateTimeProperty(auto_now=True)
+    liked = db.IntegerProperty(default=0)
 
     @classmethod
     def by_uid(cls, uid):
@@ -64,3 +65,12 @@ class Comment(db.Model):
         # TODO: Tried but failed
         query = db.Query(model_class=Comment, keys_only=True)
         return Comment.get([key for key in query.run()])
+
+
+class Like(db.Model):
+    uid = db.IntegerProperty(required=True)
+    pid = db.IntegerProperty(required=True)
+
+    @classmethod
+    def by_uid_and_pid(cls, uid, pid):
+        return db.GqlQuery("select * from Like where uid= :uid and pid= :pid", uid=uid, pid=pid).get()
