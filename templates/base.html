@@ -30,9 +30,20 @@
     <![endif]-->
 
     <style>
+        /*
+         * Fix bug of Bootstrap, issue: https://github.com/twbs/bootstrap/issues/14040
+         */
         .modal-open .navbar-fixed-top,
         .modal-open .navbar-fixed-bottom {
             padding-right: 17px;
+        }
+
+        .modal-body{
+            font-size: 14px;
+        }
+
+        #SignIn_submit, #SignUp_submit{
+            display: none;
         }
     </style>
 
@@ -134,32 +145,35 @@
             <h4 class="modal-title" id="signUPModalLabel">Modal title</h4>
           </div>
           <div class="modal-body">
-            <form method="post" action="/signup">
-                <div class="form-group">
-                    <label for="Username" class="col-sm-2 control-label">Username</label>
-                    <div class="col-sm-10">
-                        <input name= "username" type="text" class="form-control" id="Username" value="{{username}}">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="Password" class="col-sm-2 control-label">Password</label>
-                    <div class="col-sm-10">
-                        <input name= "password" type="password" class="form-control" id="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="Verify" class="col-sm-2 control-label">Verify Password</label>
-                    <div class="col-sm-10">
-                        <input name= "verify" type="password" class="form-control" id="Verify">
-                    </div>
-                </div>
-                <div>{{signup_error}}</div>
-                <input type="submit">
-            </form>
+              <div class="row">
+                  <div class="col-md-12">
+                      <form method="post" action="/signup">
+                        <div class="form-group">
+                            <label for="Username" class="col-sm-2 control-label">Username</label>
+                            <div class="col-sm-10">
+                                <input name= "username" type="text" class="form-control" id="Username" value="{{username}}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="Password" class="col-sm-2 control-label">Password</label>
+                            <div class="col-sm-10">
+                                <input name= "password" type="password" class="form-control" id="Password">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="Verify" class="col-sm-2 control-label">Verify Password</label>
+                            <div class="col-sm-10">
+                                <input name= "verify" type="password" class="form-control" id="Verify">
+                            </div>
+                        </div>
+                        <div>{{signup_error}}</div>
+                        <input id="SignUp_submit" type="submit">
+                    </form>
+                  </div>
+              </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" id="SignUp" class="btn btn-primary">Confirm</button>
           </div>
         </div>
       </div>
@@ -174,26 +188,29 @@
             <h4 class="modal-title" id="signInModalLabel">Modal title</h4>
           </div>
           <div class="modal-body">
-            <form method="post" action="/signin">
-                <div class="form-group">
-                    <label for="Username_lg" class="col-sm-2 control-label">Username</label>
-                    <div class="col-sm-10">
-                        <input name= "username_si" type="text" class="form-control" id="Username_lg" value="{{username_si}}">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="Password_si" class="col-sm-2 control-label">Password</label>
-                    <div class="col-sm-10">
-                        <input name= "password_si" type="password" class="form-control" id="Password_si">
-                    </div>
-                </div>
-                <div>{{signin_error}}</div>
-                <input type="submit">
-            </form>
+              <div class="row">
+                  <div class="col-md-12">
+                      <form method="post" action="/signin">
+                        <div class="form-group">
+                            <label for="Username_lg" class="col-sm-2 control-label">Username</label>
+                            <div class="col-sm-10">
+                                <input name= "username_si" type="text" class="form-control" id="Username_lg" value="{{username_si}}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="Password_si" class="col-sm-2 control-label">Password</label>
+                            <div class="col-sm-10">
+                                <input name= "password_si" type="password" class="form-control" id="Password_si">
+                            </div>
+                        </div>
+                        <div>{{signin_error}}</div>
+                        <input id="SignIn_submit" type="submit">
+                    </form>
+                  </div>
+              </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" id="SignIn" class="btn btn-primary">Confirm</button>
           </div>
         </div>
       </div>
@@ -217,6 +234,14 @@
 
     <!-- Sign Up/In error display JavaScript -->
     <script>
+        $('#SignIn').click(function(){
+            $('#SignIn_submit').trigger('click');
+        });
+
+        $('#SignUp').click(function(){
+            $('#SignUp_submit').trigger('click');
+        });
+
         {% if signup_error %}
             $(window).load(function(){
                 $('#signUpModal').modal('show');
