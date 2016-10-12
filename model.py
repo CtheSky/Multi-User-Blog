@@ -30,6 +30,7 @@ class User(db.Model):
 
 class Post(db.Model):
     uid = db.IntegerProperty(required=True)
+    uname = db.StringProperty(required=True)
     title = db.StringProperty(required=True)
     subtitle = db.StringProperty()
     content = db.TextProperty(required=True)

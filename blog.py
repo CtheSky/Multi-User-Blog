@@ -86,13 +86,14 @@ class NewPost(Handler):
             return
 
         uid = self.user.key().id()
+        uname = self.user.name
         title = self.request.get("title")
         subtitle = self.request.get("subtitle", "")
         content = self.request.get("content")
 
         if title and content:
             content = content.replace('\n', '<br>')
-            post = Post(uid=uid, title=title, subtitle=subtitle, content=content)
+            post = Post(uid=uid, uname=uname, title=title, subtitle=subtitle, content=content)
             post.put()
             self.redirect("/post/" + str(post.key().id()))
         else:
