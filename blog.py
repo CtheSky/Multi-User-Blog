@@ -1,13 +1,17 @@
 import os
-import hmac
 
 import webapp2
 import jinja2
 from google.appengine.ext import db
 
-from validate import *
-from model import *
-from hash import *
+from validate import valid_username
+from validate import valid_password
+from model import User
+from model import Post
+from model import Comment
+from model import Like
+from hash import make_secure_val
+from hash import check_secure_val
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinjia_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
@@ -15,6 +19,7 @@ jinjia_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
 
 
 class Handler(webapp2.RequestHandler):
+    """Basic Handler with user authentication helper functions"""
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
@@ -65,14 +70,18 @@ class Handler(webapp2.RequestHandler):
 
 
 class MainPage(Handler):
+    """url:/"""
     def get(self):
+        """render home page displaying a public post list"""
         self.initialize(self.request, self.response)
         posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC")
         self.render("post_main.html", posts=posts)
 
 
 class NewPost(Handler):
+    """url:/new_post"""
     def get(self):
+        """render new post page with editor and a form"""
         self.initialize(self.request, self.response)
         if not self.user:
             signin_error = "You have to sign in first."
@@ -81,6 +90,7 @@ class NewPost(Handler):
             self.render("new_post.html")
 
     def post(self):
+        """create a post and redirect to MyPost handler"""
         if self.with_no_user():
             self.redirect("/")
             return
@@ -93,16 +103,26 @@ class NewPost(Handler):
 
         if title and content:
             content = content.replace('\n', '<br>')
-            post = Post(uid=uid, uname=uname, title=title, subtitle=subtitle, content=content)
+            post = Post(uid=uid,
+                        uname=uname,
+                        title=title,
+                        subtitle=subtitle,
+                        content=content)
             post.put()
             self.redirect("/post/" + str(post.key().id()))
         else:
             error = "Both title, subtitle and content are needed!"
-            self.render("new_post.html", title=title, content=content, error=error)
+            self.render("new_post.html",
+                        title=title,
+                        content=content,
+                        error=error)
 
 
 class EditPost(Handler):
+    """url:/edit_post/pid"""
     def get(self, pid):
+        """render edit post page with editor
+        including original content and a form"""
         if not self.user_match_post_author(pid):
             self.redirect("/")
             return
@@ -112,9 +132,13 @@ class EditPost(Handler):
         subtitle = post.subtitle
         content = post.content
 
-        self.render("edit_post.html", title=title, subtitle=subtitle, content=content)
+        self.render("edit_post.html",
+                    title=title,
+                    subtitle=subtitle,
+                    content=content)
 
     def post(self, pid):
+        """update the post content"""
         if not self.user_match_post_author(pid):
             self.redirect("/")
             return
@@ -127,7 +151,9 @@ class EditPost(Handler):
 
 
 class DeletePost(Handler):
+    """url:/delete_post/pid"""
     def post(self, pid):
+        """delete post by given id in url"""
         if not self.user_match_post_author(pid):
             self.redirect("/")
             return
@@ -139,7 +165,10 @@ class DeletePost(Handler):
 
 
 class ViewPost(Handler):
+    """url:/post/pid"""
     def get(self, pid):
+        """render post page including post content
+        comments and liked number"""
         pid = long(pid)
         post = Post.by_id(pid)
         if post:
@@ -149,13 +178,19 @@ class ViewPost(Handler):
             like = None
             if not self.with_no_user():
                 like = Like.by_uid_and_pid(self.user.key().id(), pid)
-            self.render("post.html", post=post, author=author, comments=comments, like=like)
+            self.render("post.html",
+                        post=post,
+                        author=author,
+                        comments=comments,
+                        like=like)
         else:
             self.render("404.html")
 
 
 class MyPost(Handler):
+    """url:/my_post"""
     def get(self):
+        """display a list of posts of user"""
         if self.with_no_user():
             self.redirect("/")
             return
@@ -166,7 +201,9 @@ class MyPost(Handler):
 
 
 class LikePost(Handler):
+    """url:/like_post"""
     def post(self):
+        """increment post liked number by one"""
         pid = self.request.get("pid")
         if self.with_no_user() or self.user_match_post_author(pid):
             self.redirect("/")
@@ -185,7 +222,9 @@ class LikePost(Handler):
 
 
 class NewComment(Handler):
+    """url:/new_comment"""
     def post(self):
+        """create a comment to related post"""
         if self.with_no_user():
             self.redirect("/")
             return
@@ -203,7 +242,9 @@ class NewComment(Handler):
 
 
 class DeleteComment(Handler):
+    """url:/delete_comment"""
     def post(self):
+        """delete comment and redirect to related post page"""
         cid = self.request.get("cid")
         if not self.user_match_comment_author(cid):
             self.redirect("/")
@@ -218,7 +259,9 @@ class DeleteComment(Handler):
 
 
 class EditComment(Handler):
+    """url:/edit_comment"""
     def post(self):
+        """update comment content"""
         cid = self.request.get("cid")
         if not self.user_match_comment_author(cid):
             self.redirect("/")
@@ -235,7 +278,10 @@ class EditComment(Handler):
 
 
 class SignUp(Handler):
+    """url:/signup"""
     def post(self):
+        """create user or give an error message
+        if information is not valid"""
         have_error = False
         signup_error = None
         name = self.request.get('username')
@@ -260,7 +306,9 @@ class SignUp(Handler):
             signup_error = "That's not a valid username."
 
         if have_error:
-            self.render("post_main.html", username=name, signup_error=signup_error)
+            self.render("post_main.html",
+                        username=name,
+                        signup_error=signup_error)
         else:
             user = User.register(name, pw)
             user.put()
@@ -269,7 +317,9 @@ class SignUp(Handler):
 
 
 class SignIn(Handler):
+    """url:/signin"""
     def post(self):
+        """make user log in by adding cookie"""
         name = self.request.get('username_si')
         pw = self.request.get('password_si')
 
@@ -279,11 +329,15 @@ class SignIn(Handler):
             self.redirect("/")
         else:
             signin_error = "Invalid username or password."
-            self.render("post_main.html", username_si=name, signin_error=signin_error)
+            self.render("post_main.html",
+                        username_si=name,
+                        signin_error=signin_error)
 
 
 class LogOut(Handler):
+    """url:/logout"""
     def get(self):
+        """make user log out by resetting cookie value"""
         self.logout()
         self.redirect('/')
 
