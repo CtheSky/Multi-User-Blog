@@ -141,19 +141,17 @@ class DeletePost(Handler):
 class ViewPost(Handler):
     def get(self, pid):
         pid = long(pid)
-
         post = Post.by_id(pid)
-        author = User.by_id(post.uid)
-        comments = Comment.by_pid(pid)
-
-        like = None
-        if not self.with_no_user():
-            like = Like.by_uid_and_pid(self.user.key().id(), pid)
-
         if post:
+            author = User.by_id(post.uid)
+            comments = Comment.by_pid(pid)
+
+            like = None
+            if not self.with_no_user():
+                like = Like.by_uid_and_pid(self.user.key().id(), pid)
             self.render("post.html", post=post, author=author, comments=comments, like=like)
         else:
-            self.error(404)
+            self.render("404.html")
 
 
 class MyPost(Handler):
