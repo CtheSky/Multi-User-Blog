@@ -113,7 +113,7 @@
                         <div id="editor" >
                             editor
                         </div>
-                        <form method="post" action="/new_comment">
+                        <form method="post" id="Comment_form" action="/new_comment">
                             <input type="hidden" name="pid" value="{{post.key().id()}}" id="Pid">
                             <input type="hidden" name="cid" value="" id="Cid">
                             <div>
@@ -167,6 +167,7 @@
                 var cid = $(this).attr('data-cid');
                 $('#Cid').val(cid);
                 $('#Publish').html('Confirm Edit');
+                $('#Comment_form').attr('action', '/edit_comment');
                 $('#Cancel').show();
                 var content = $('#' + cid).html();
                 $('#editor').summernote('code', content);
@@ -175,6 +176,7 @@
             $('#Cancel').click(function reset_form(){
                 $('#Cid').val('');
                 $('#Publish').html('Publish this Comment');
+                $('#Comment_form').attr('action', '/new_comment');
                 $('#editor').summernote('code', '');
                 $('#Cancel').hide();
             });

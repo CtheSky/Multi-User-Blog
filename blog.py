@@ -298,6 +298,7 @@ app = webapp2.WSGIApplication([
     ('/edit_post/(\d+)', EditPost),
     ('/delete_post/(\d+)', DeletePost),
     ('/new_comment', NewComment),
+    ('/edit_comment', EditComment),
     ('/delete_comment', DeleteComment),
     ('/signup', SignUp),
     ('/signin', SignIn),
